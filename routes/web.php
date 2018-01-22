@@ -12,7 +12,8 @@
 */
 
 Route::group(['prefix' => 'api'], function(){
+	Route::post('tasks/{task}/files', 'FileController@uploads');
+
 	Route::resource('tasks', 'TaskController');
-	Route::post('tasks/{tasks}/files', 'FileController@uploads');
 	Route::get('tasks/{task}/file', ['as'=>'get.tasks.file', 'uses' => 'taskController@downloadFile']);
 });

@@ -23,12 +23,12 @@ class FileRequest extends FormRequest
      */
     public function rules()
     {
-	    $rules = [];
-	    $photos = count($this->input('photos'));
-	    foreach(range(0, $photos) as $index) {
-		    $rules['photos.' . $index] = 'max:2000';
-	    }
 
+	    $rules = [];
+	    /*$photos = count($this->all()['files']);
+	    foreach(range(0, $photos - 1) as $index) {
+		    $rules['photos.' . $index] = 'max:2000';
+	    }*/
 	    return $rules;
     }
 }
