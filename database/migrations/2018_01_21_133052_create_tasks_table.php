@@ -20,7 +20,6 @@ class CreateTasksTable extends Migration
             $table->boolean('privacy')->default(0);
             $table->boolean('status')->default(0);
             $table->dateTime('deadline');
-            $table->string('file')->nullable();
             $table->integer('user_id')->unsigned()->nullable();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

@@ -13,7 +13,6 @@ class Task extends Model
 	    'privacy',
 	    'status',
 	    'deadline',
-	    'file'
     ];
 
 
