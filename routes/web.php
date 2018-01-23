@@ -12,8 +12,10 @@
 */
 
 Route::group(['prefix' => 'api'], function(){
+
 	Route::post('tasks/{task}/files', 'FileController@uploads');
 
+	Route::delete('tasks/{task}/files/{file}', 'FileController@detach');
+
 	Route::resource('tasks', 'TaskController');
-	Route::get('tasks/{task}/file', ['as'=>'get.tasks.file', 'uses' => 'taskController@downloadFile']);
 });

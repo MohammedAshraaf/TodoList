@@ -26,17 +26,47 @@ class FileTest extends TestCase
 		$response = $this->json('POST', 'api/tasks/'.$task->id.'/files', [
 			'files' =>[
 				UploadedFile::fake()->image('file1.jpg'),
-				UploadedFile::fake()->image('file2.jpg'),
-				UploadedFile::fake()->image('file3.jpg')
+
 			]
 		]);
 
 		foreach (File::all() as $file)
 		{
 			$file = explode('/', $file->path);
-			$s = array_pop($file);
-			$this->assertEquals(true, file_exists(storage_path('app/tasks/' . $task->id . '/' . $s)));
+			$path = array_pop($file);
+			$this->assertEquals(true, file_exists(storage_path('app/tasks/' . $task->id . '/' . $path)));
 		}
 
 	}
+
+	public function test_it_detach_files_from_specific_task(  )
+	{
+		// assuming we have task
+		$task = factory(Task::class)->create();
+
+
+		// and we attached file to it
+		$response = $this->json('POST', 'api/tasks/'.$task->id.'/files', [
+			'files' =>[
+				UploadedFile::fake()->image('file1.jpg'),
+
+			]
+		]);
+
+		$file = $task->files()->first();
+
+		// when removing the file
+		$response = $this->json('delete', 'api/tasks/' . $task->id . '/files/'.$file->id);
+
+		$path = explode('/', $file->path);
+
+		$path = array_pop($path);
+
+		// then we don't see the file
+		$this->assertEquals(false, file_exists(storage_path('app/tasks/' . $task->id . '/' . $path)));
+
+		$this->assertEquals(null, File::find($file->id));
+	}
+
+
 }
