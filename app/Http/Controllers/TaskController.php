@@ -5,11 +5,34 @@ namespace App\Http\Controllers;
 use App\Http\Requests\TaskRequest;
 use App\Task;
 use App\Transformers\TaskTransformer;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Input;
+use League\Fractal\Pagination\IlluminatePaginatorAdapter;
 use Spatie\Fractalistic\Fractal;
 
 class TaskController extends Controller
 {
+
+	/**
+	 * indexing the tasks
+	 * @return mixed
+	 */
+	public function index()
+	{
+		$limit = Input::get('limit', 2);
+
+		// user can't request more that 500 records
+		$limit = min($limit, 500);
+
+		$users = Task::paginate(2);
+		$userCollection = $users->getCollection();
+
+		return fractal()
+			->collection($userCollection)
+			->parseIncludes(['group'])
+			->transformWith(new TaskTransformer())
+			->paginateWith(new IlluminatePaginatorAdapter($users))
+			->toArray();
+	}
 
 	/**
 	 * Stores a new task
@@ -37,7 +60,7 @@ class TaskController extends Controller
 
 
 
-    	return response()->json(['created' => true],200);
+    	return response()->json(['created' => true , 'id' => $task->id],200);
     }
 
 
