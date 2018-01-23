@@ -21,7 +21,7 @@ class TaskTest extends TestCase
 		$task = Task::first();
 
 		$this->assertEquals($attributes['description'], $task->description);
-		$this->assertEquals($attributes['deadline']->format('Y-m-d H:i:s'), $task->deadline);
+		$this->assertEquals($attributes['deadline'], $task->deadline);
 	}
 
 	/** @test */
@@ -39,7 +39,7 @@ class TaskTest extends TestCase
 		$task = Task::first();
 
 		$this->assertEquals($attributes['description'], $task->description);
-		$this->assertEquals($attributes['deadline']->format('Y-m-d H:i:s'), $task->deadline);
+		$this->assertEquals($attributes['deadline'], $task->deadline);
 		$this->assertEquals($attributes['private'], $task->private);
 		$this->assertEquals($attributes['status'], $task->status);
 	}

@@ -26,6 +26,6 @@ $factory->define(App\Task::class, function (Faker $faker) {
     return [
     	'name' => $faker->word,
         'description' => $faker->word,
-        'deadline' => '2018-05-15',
+        'deadline' => '2018-05-15 00:00:00',
     ];
 });
