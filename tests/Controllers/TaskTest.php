@@ -4,9 +4,12 @@ namespace Tests\Controller;
 
 use App\Task;
 use App\Transformers\TaskTransformer;
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Fractalistic\Fractal;
 use Tests\TestCase;
@@ -16,6 +19,45 @@ class TaskTest extends TestCase
 {
 	use DatabaseTransactions;
 
+	/**
+	 * Creates new user with client id to authenticate through passport
+	 * @return mixed
+	 */
+	public function createNewUserWithClientRecord()
+	{
+		$user = factory(User::class)->create();
+
+		Auth::login($user);
+
+		$response = $this->json('POST' , '/oauth/clients', [
+			'name' => 'MyClient',
+			'redirect' => 'http://localhost'
+		]);
+
+		return $user;
+
+	}
+
+	/**
+	 * Creates headers for passport token
+	 * @param null $user
+	 *
+	 * @return array
+	 */
+	protected function headers($user = null)
+	{
+		$headers = ['Accept' => 'application/json'];
+
+		if (!is_null($user)) {
+			$token = $user->createToken('Token Name')->accessToken;
+			$headers['Authorization'] = 'Bearer ' . $token;
+		}
+
+		return $headers;
+	}
+
+
+
 	public function test_it_stores_new_task()
 	{
 		$attributes = factory(Task::class)->make([
@@ -23,7 +65,11 @@ class TaskTest extends TestCase
 			'status' => true,
 		])->toArray();
 
-		$response = $this->json('POST', 'api/tasks', $attributes);
+		$user = $this->createNewUserWithClientRecord();
+
+		$headers = $this->headers($user);
+
+		$response = $this->json('POST', 'api/tasks', $attributes, $headers);
 
 		$response
 			->assertJson([
@@ -35,7 +81,11 @@ class TaskTest extends TestCase
 	{
 		$task = factory(Task::class)->create();
 
-		$response = $this->json('GET', 'api/tasks/'.$task->id);
+		$user = $this->createNewUserWithClientRecord();
+
+		$headers = $this->headers($user);
+
+		$response = $this->json('GET', 'api/tasks/'.$task->id, [], $headers);
 
 		$response
 			->assertJson([
@@ -53,8 +103,11 @@ class TaskTest extends TestCase
 	{
 		$task = factory(Task::class)->create()->toArray();
 
+		$user = $this->createNewUserWithClientRecord();
 
-		$response = $this->json('PUT', 'api/tasks/'.$task['id'], $task);
+		$headers = $this->headers($user);
+
+		$response = $this->json('PUT', 'api/tasks/'.$task['id'], $task, $headers);
 
 		$task = Task::find($task['id']);
 
@@ -69,7 +122,11 @@ class TaskTest extends TestCase
 	{
 		$task = factory(Task::class)->create();
 
-		$response = $this->json('DELETE', 'api/tasks/'.$task->id);
+		$user = $this->createNewUserWithClientRecord();
+
+		$headers = $this->headers($user);
+
+		$response = $this->json('DELETE', 'api/tasks/'.$task->id, [], $headers);
 
 
 		$response->assertJson([

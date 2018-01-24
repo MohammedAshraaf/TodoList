@@ -4,12 +4,10 @@ namespace Tests\Controller;
 
 use App\File;
 use App\Task;
-use App\Transformers\TaskTransformer;
-use Carbon\Carbon;
+use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
-use Spatie\Fractalistic\Fractal;
+use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
 
@@ -17,10 +15,53 @@ class FileTest extends TestCase
 {
 	use DatabaseTransactions;
 
+	/**
+	 * Creates new user with client id to authenticate through passport
+	 * @return mixed
+	 */
+	public function createNewUserWithClientRecord()
+	{
+		$user = factory(User::class)->create();
+
+		Auth::login($user);
+
+		$response = $this->json('POST' , '/oauth/clients', [
+			'name' => 'MyClient',
+			'redirect' => 'http://localhost'
+		]);
+
+		return $user;
+
+	}
+
+	/**
+	 * Creates headers for passport token
+	 * @param null $user
+	 *
+	 * @return array
+	 */
+	protected function headers($user = null)
+	{
+		$headers = ['Accept' => 'application/json'];
+
+		if (!is_null($user)) {
+			$token = $user->createToken('Token Name')->accessToken;
+			$headers['Authorization'] = 'Bearer ' . $token;
+		}
+
+		return $headers;
+	}
+
+
+
 	public function test_uploading_files_to_task()
 	{
 
 		$task = factory(Task::class)->create();
+
+		$user = $this->createNewUserWithClientRecord();
+
+		$headers = $this->headers($user);
 
 
 		$response = $this->json('POST', 'api/tasks/'.$task->id.'/files', [
@@ -28,7 +69,7 @@ class FileTest extends TestCase
 				UploadedFile::fake()->image('file1.jpg'),
 
 			]
-		]);
+		], $headers);
 
 		foreach (File::all() as $file)
 		{
@@ -45,18 +86,23 @@ class FileTest extends TestCase
 		$task = factory(Task::class)->create();
 
 
+		$user = $this->createNewUserWithClientRecord();
+
+		$headers = $this->headers($user);
+
+
 		// and we attached file to it
 		$response = $this->json('POST', 'api/tasks/'.$task->id.'/files', [
 			'files' =>[
 				UploadedFile::fake()->image('file1.jpg'),
 
 			]
-		]);
+		], $headers);
 
 		$file = $task->files()->first();
 
 		// when removing the file
-		$response = $this->json('delete', 'api/tasks/' . $task->id . '/files/'.$file->id);
+		$response = $this->json('delete', 'api/tasks/' . $task->id . '/files/'.$file->id, [], $headers);
 
 		$path = explode('/', $file->path);
 
