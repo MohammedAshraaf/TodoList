@@ -61,7 +61,6 @@ class FileTest extends TestCase
 
 		$user = $this->createNewUserWithClientRecord();
 
-		dd($user);
 		$headers = $this->headers($user);
 
 

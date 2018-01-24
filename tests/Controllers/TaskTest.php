@@ -7,10 +7,7 @@ use App\Transformers\TaskTransformer;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Spatie\Fractalistic\Fractal;
 use Tests\TestCase;
 
