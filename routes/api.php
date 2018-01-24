@@ -13,6 +13,15 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+
+Route::group(['middleware' => 'auth:api'], function(){
+
+	Route::post('tasks/{task}/files', 'FileController@uploads');
+
+	Route::delete('tasks/{task}/files/{file}', 'FileController@detach');
+
+
+	Route::resource('tasks', 'TaskController');
+
+
 });

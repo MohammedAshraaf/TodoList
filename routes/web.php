@@ -13,9 +13,9 @@
 
 Route::group(['prefix' => 'api'], function(){
 
-	Route::post('tasks/{task}/files', 'FileController@uploads');
 
-	Route::delete('tasks/{task}/files/{file}', 'FileController@detach');
-
-	Route::resource('tasks', 'TaskController');
 });
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index')->name('home');
