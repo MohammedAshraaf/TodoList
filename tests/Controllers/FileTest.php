@@ -26,7 +26,7 @@ class FileTest extends TestCase
 		Auth::login($user);
 
 		$response = $this->json('POST' , '/oauth/clients', [
-			'name' => 'MyClient',
+			'name' => 'hello',
 			'redirect' => 'http://localhost'
 		]);
 
