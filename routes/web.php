@@ -10,11 +10,8 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-Route::group(['prefix' => 'api'], function(){
-
-
-});
+Route::get('{user}/tasks', 'TaskController@viewOthersTasks');
+Route::get('{user}/tasks/{task}', 'TaskController@viewOthersTask');
 
 Auth::routes();
 

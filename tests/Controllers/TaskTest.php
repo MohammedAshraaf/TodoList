@@ -8,6 +8,7 @@ use App\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Spatie\Fractalistic\Fractal;
 use Tests\TestCase;
 
@@ -115,6 +116,7 @@ class TaskTest extends TestCase
 
 	}
 
+
 	public function test_it_deletes_task()
 	{
 		$task = factory(Task::class)->create();
@@ -130,6 +132,25 @@ class TaskTest extends TestCase
 			'deleted' => true,
 		]);
 
+	}
+
+	public function test_guests_can_see_public_tasks()
+	{
+		$user = $this->createNewUserWithClientRecord();
+
+		$task = factory(Task::class)->create(['user_id' => $user->id]);
+
+		$task = Fractal::create()
+		               ->item($task)
+		               ->transformWith(TaskTransformer::class)->toJson();
+
+
+		Auth::logout();
+
+
+		$response = $this->json('GET', $user->id.'/tasks/');
+
+		$this->assertJson($task, $response->json());
 	}
 
 }
