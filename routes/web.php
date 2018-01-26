@@ -14,5 +14,3 @@ Route::get('{user}/tasks', 'TaskController@viewOthersTasks');
 Route::get('{user}/tasks/{task}', 'TaskController@viewOthersTask');
 
 Auth::routes();
-
-Route::get('/home', 'HomeController@index')->name('home');

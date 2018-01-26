@@ -23,5 +23,6 @@ Route::group(['middleware' => 'auth:api'], function(){
 
 	Route::resource('tasks', 'TaskController');
 
+	Route::post('my/avatar', 'UserController@changeAvatar');
 
 });
