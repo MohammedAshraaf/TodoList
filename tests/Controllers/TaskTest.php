@@ -70,9 +70,7 @@ class TaskTest extends TestCase
 		$response = $this->json('POST', 'api/tasks', $attributes, $headers);
 
 		$response
-			->assertJson([
-				'created' => true,
-			]);
+			->assertJson(['success' => 'Task has been created!', 'id' => Task::first()->id]);
 	}
 
 	public function test_that_it_shows_single_task()
@@ -128,9 +126,7 @@ class TaskTest extends TestCase
 		$response = $this->json('DELETE', 'api/tasks/'.$task->id, [], $headers);
 
 
-		$response->assertJson([
-			'deleted' => true,
-		]);
+		$response->assertJson(['success' => 'The Task has been deleted!']);
 
 	}
 

@@ -66,7 +66,7 @@ class TaskController extends Controller
 
 
 
-    	return response()->json(['created' => true , 'id' => $task->id],200);
+    	return response()->json(['success' => 'Task has been created!', 'id' => $task->id],200);
     }
 
 
@@ -127,7 +127,7 @@ class TaskController extends Controller
     {
 	    $task->delete();
 
-    	return response()->json(['deleted' => true], 200);
+    	return response()->json(['success' => 'The Task has been deleted!'], 200);
     }
 
 

@@ -73,9 +73,7 @@ class FileTest extends TestCase
 
 		foreach (File::all() as $file)
 		{
-			$file = explode('/', $file->path);
-			$path = array_pop($file);
-			$this->assertEquals(true, file_exists(storage_path('app/tasks/' . $task->id . '/' . $path)));
+			$this->assertEquals(true, file_exists(storage_path('app/'. $file->path)));
 		}
 
 	}
@@ -104,12 +102,10 @@ class FileTest extends TestCase
 		// when removing the file
 		$response = $this->json('delete', 'api/tasks/' . $task->id . '/files/'.$file->id, [], $headers);
 
-		$path = explode('/', $file->path);
 
-		$path = array_pop($path);
 
 		// then we don't see the file
-		$this->assertEquals(false, file_exists(storage_path('app/tasks/' . $task->id . '/' . $path)));
+		$this->assertEquals(false, file_exists(storage_path('app/' . $file->path)));
 
 		$this->assertEquals(null, File::find($file->id));
 	}
