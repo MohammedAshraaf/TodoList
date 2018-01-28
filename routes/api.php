@@ -25,4 +25,6 @@ Route::group(['middleware' => 'auth:api'], function(){
 
 	Route::post('my/avatar', 'UserController@changeAvatar');
 
+	Route::post('my/info', 'UserController@changeInfo');
+
 });

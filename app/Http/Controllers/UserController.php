@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\HelperClasses\FilesRemover;
+use App\Http\Requests\UserProfileRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -42,5 +43,17 @@ class UserController extends Controller
     }
 
 
+	public function changeInfo(UserProfileRequest $request)
+	{
+		/*if ($request->filled('current_password') && bcrypt($request->current_pasword)!= Auth::user()->password)
+		{
+			return response()->json(['error' => 'The current password doesn\'t match!']);
+		}*/
+
+		$currentUser = Auth::user();
+		$currentUser->update($request->only(['password', 'info', 'name']));
+
+		return response()->json(['success' => 'Your information has been updated'], 200);
+    }
 
 }

@@ -17,11 +17,14 @@ class ProfileTest extends TestCase
 
 	/**
 	 * Creates new user with client id to authenticate through passport
+	 *
+	 * @param array $attributes
+	 *
 	 * @return mixed
 	 */
-	public function createNewUserWithClientRecord()
+	public function createNewUserWithClientRecord($attributes = [])
 	{
-		$user = factory(User::class)->create();
+		$user = factory(User::class)->create($attributes);
 
 		Auth::login($user);
 
@@ -83,4 +86,34 @@ class ProfileTest extends TestCase
 		$this->assertEquals(false, file_exists(storage_path('app/' . $firstFile)));
 
 	}
+
+
+
+	public function test_user_can_update_info()
+	{
+		$user = $this->createNewUserWithClientRecord(['password' => bcrypt('password')]);
+
+		$headers = $this->headers($user);
+
+		$newInfo = [
+			/*'password' =>'newPassword',
+			'password_confirmation' => 'newPassword',
+			'current_password' => 'password',*/
+			'info' => 'Hello this is my new info',
+			'name' => 'Mohamed'
+		];
+
+		$response = $this->json('POST', 'api/my/info', $newInfo, $headers);
+
+
+		$user = User::find(Auth::id());
+
+		$this->assertEquals($newInfo['info'], $user->info);
+
+		$this->assertEquals($newInfo['name'], $user->name);
+
+
+	}
 }
+
+
