@@ -65,7 +65,22 @@ class ProfileTest extends TestCase
 
 		], $headers);
 
-		$this->assertEquals(true, file_exists(storage_path('app/' . Auth::user()->path)));
+
+		$this->assertEquals(true, file_exists(storage_path('app/' . Auth::user()->avatar)));
+
+
+		$firstFile = Auth::user()->avatar;
+
+		$response = $this->json('POST', 'api/my/avatar', [
+			'avatar' => UploadedFile::fake()->image('avatar.jpg'),
+
+		], $headers);
+
+
+		$this->assertEquals(true, file_exists(storage_path('app/' . Auth::user()->avatar)));
+
+
+		$this->assertEquals(false, file_exists(storage_path('app/' . $firstFile)));
 
 	}
 }
