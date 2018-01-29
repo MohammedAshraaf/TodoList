@@ -16,21 +16,32 @@ use Illuminate\Http\Request;
 
 Route::group(['middleware' => 'auth:api'], function()
 {
-	Route::get('logout', 'UserContrller@logout');
 
 
+	Route::resource('tasks', 'TaskController');
+
+	/**
+	 * Tasks Files Routes
+	 */
 	Route::post('tasks/{task}/files', 'FileController@uploads');
 
 	Route::delete('tasks/{task}/files/{file}', 'FileController@detach');
 
 
-	Route::resource('tasks', 'TaskController');
-
+	/**
+	 * Users Info Routes
+	 */
 	Route::post('my/avatar', 'UserController@changeAvatar');
 
 	Route::post('my/info', 'UserController@changeInfo');
 
+
+	/**
+	 * Invitations Routes
+	 */
 	Route::get('invite/{user}/to/{task}', 'InvitationController@inviteToWatchPrivateTask');
 
 	Route::get('accept/{invitation}', 'InvitationController@acceptInvitation');
+
+	Route::get('deny/{invitation}', 'InvitationController@denyInvitation');
 });

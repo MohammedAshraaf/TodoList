@@ -66,4 +66,24 @@ class InvitationController extends Controller
 
 		return response()->json(['success' => 'Invitation Accepted'], 200);
 	}
+
+	/**
+	 * Accepts an invitation
+	 * @param Invitation $invitation
+	 *
+	 * @return \Illuminate\Http\JsonResponse
+	 */
+	public function denyInvitation(Invitation $invitation)
+	{
+		if($invitation->status != 'pending' || $invitation->invitee != Auth::id())
+		{
+			return response()->json(['error' => 'You have responded to this invitation before!']);
+		}
+
+		$invitation->status = 'rejected';
+
+		$invitation->save();
+
+		return response()->json(['success' => 'Invitation Rejected'], 200);
+	}
 }

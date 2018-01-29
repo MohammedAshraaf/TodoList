@@ -108,6 +108,29 @@ class InvitationTest extends TestCase
 
 		$this->assertEquals('accepted', $invitation->status);
 	}
+
+	public function test_user_can_deny_an_invitation()
+	{
+		$invitee = $this->createNewUserWithClientRecord();
+
+		$headers = $this->headers($invitee);
+
+		$task = factory(Task::class)->create(['privacy' => 1]);
+
+		$invitor = factory(User::class)->create();
+
+		$invitation = \factory(Invitation::class)->create([
+			'invitor' => $invitor->id,
+			'invitee' => $invitee->id,
+			'task_id' => $task->id
+		]);
+
+		$response = $this->json('GET', "api/deny/{$invitation->id}", [], $headers);
+
+		$invitation = Invitation::find($invitation->id);
+
+		$this->assertEquals('rejected', $invitation->status);
+	}
 }
 
 
