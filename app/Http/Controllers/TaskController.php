@@ -26,7 +26,7 @@ class TaskController extends Controller
 		$limit = min($limit, 500);
 
 		// get the current user's tasks
-		$tasks = Auth::user()->tasks()->paginate(2);
+		$tasks = Auth::user()->tasks()->paginate($limit);
 
 		$taskCollection = $tasks->getCollection();
 
