@@ -44,4 +44,6 @@ Route::group(['middleware' => 'auth:api'], function()
 	Route::get('accept/{invitation}', 'InvitationController@acceptInvitation');
 
 	Route::get('deny/{invitation}', 'InvitationController@denyInvitation');
+
+	Route::get('my/invitations', 'InvitationController@myInvitations');
 });

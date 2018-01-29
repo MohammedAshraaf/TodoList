@@ -4,10 +4,12 @@ namespace Tests\Feature\Controller;
 
 use App\Invitation;
 use App\Task;
+use App\Transformers\InvitationTransformer;
 use App\User;
 use Faker\Factory;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Auth;
+use League\Fractal\Pagination\IlluminatePaginatorAdapter;
 use Tests\TestCase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -130,6 +132,48 @@ class InvitationTest extends TestCase
 		$invitation = Invitation::find($invitation->id);
 
 		$this->assertEquals('rejected', $invitation->status);
+	}
+
+	public function test_user_can_display_the_invitations_he_got()
+	{
+		$tasks = array();
+		$users = array();
+		$invitationsIds = array();
+		$currentUser = $this->createNewUserWithClientRecord();
+
+		for($i = 0; $i < 5; ++$i)
+		{
+			$tasks[] = factory(Task::class)->create(['privacy' => 1]);
+			$users[] = factory(User::class)->create();
+
+			$invitationsIds[] = factory(Invitation::class)->create([
+				'invitor' => $users[$i]->id,
+				'invitee' => $currentUser->id,
+				'task_id' => $tasks[$i]-> id
+			])->id;
+		}
+
+		$headers = $this->headers($currentUser);
+
+		$response = $this->json('GET', 'api/my/invitations',[], $headers);
+
+		$this->assertCount(5, $currentUser->invited);
+
+
+		$invitations = Invitation::where('invitee', $currentUser->id)->paginate(25);
+
+		$invitesCollection = $invitations->getCollection();
+
+		// build the format
+		$data =  fractal()
+			->collection($invitesCollection)
+			->parseIncludes(['group'])
+			->transformWith(new InvitationTransformer())
+			->paginateWith(new IlluminatePaginatorAdapter($invitations))->toJson();
+
+
+		$this->assertJson($data, $response->json());
+
 	}
 }
 
