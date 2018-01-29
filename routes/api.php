@@ -30,7 +30,7 @@ Route::group(['middleware' => 'auth:api'], function()
 
 	Route::post('my/info', 'UserController@changeInfo');
 
-	Route::get('invite/{user}/to/{task}', 'UserController@inviteToWatchPrivateTask');
+	Route::get('invite/{user}/to/{task}', 'InvitationController@inviteToWatchPrivateTask');
 
-	Route::get('accept/{invitation}', 'UserController@acceptInvitation');
+	Route::get('accept/{invitation}', 'InvitationController@acceptInvitation');
 });
