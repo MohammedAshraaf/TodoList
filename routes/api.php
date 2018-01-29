@@ -14,7 +14,10 @@ use Illuminate\Http\Request;
 */
 
 
-Route::group(['middleware' => 'auth:api'], function(){
+Route::group(['middleware' => 'auth:api'], function()
+{
+	Route::get('logout', 'UserContrller@logout');
+
 
 	Route::post('tasks/{task}/files', 'FileController@uploads');
 
@@ -29,4 +32,5 @@ Route::group(['middleware' => 'auth:api'], function(){
 
 	Route::get('invite/{user}/to/{task}', 'UserController@inviteToWatchPrivateTask');
 
+	Route::get('accept/{invitation}', 'UserController@acceptInvitation');
 });

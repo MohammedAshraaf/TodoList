@@ -31,3 +31,11 @@ $factory->define(App\Task::class, function (Faker $faker) {
 	    'status' => false
     ];
 });
+
+
+$factory->define(App\Invitation::class, function (Faker $faker) {
+    return [
+    	'status' => 'pending',
+
+    ];
+});

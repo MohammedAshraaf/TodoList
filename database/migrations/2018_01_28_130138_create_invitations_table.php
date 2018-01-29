@@ -18,7 +18,7 @@ class CreateInvitationsTable extends Migration
             $table->integer('invitor')->unsigned();
             $table->integer('invitee')->unsigned();
             $table->integer('task_id')->unsigned();
-            $table->enum('status', ['accepted', 'rejected', 'pending']);
+            $table->string('status')->default('pending');
 	        $table->timestamps();
 
 	        $table->foreign('invitor')->references('id')->on('users')->onDelete('cascade');

@@ -5,6 +5,7 @@ namespace Tests\Feature\Controller;
 use App\Invitation;
 use App\Task;
 use App\User;
+use Faker\Factory;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
@@ -142,6 +143,28 @@ class UserTest extends TestCase
 				'status' => $invitation->status
 			]
 		]);
+	}
+
+	public function test_user_can_accept_invitation_to_watch_task()
+	{
+		$invitee = $this->createNewUserWithClientRecord();
+
+		$headers = $this->headers($invitee);
+
+		$task = factory(Task::class)->create(['privacy' => 1]);
+
+		$invitor = factory(User::class)->create();
+
+		$invitation = \factory(Invitation::class)->create([
+			'invitor' => $invitor->id,
+			'invitee' => $invitee->id,
+			'task_id' => $task->id
+		]);
+
+		$response = $this->json('GET', "api/accept/{$invitation->id}", [], $headers);
+		$invitation = Invitation::find($invitation->id);
+
+		$this->assertEquals('accepted', $invitation->status);
 	}
 }
 
