@@ -99,9 +99,9 @@ class UserTest extends TestCase
 		$headers = $this->headers($user);
 
 		$newInfo = [
-			/*'password' =>'newPassword',
+			'password' =>'newPassword',
 			'password_confirmation' => 'newPassword',
-			'current_password' => 'password',*/
+			'current_password' => 'password',
 			'info' => 'Hello this is my new info',
 			'name' => 'Mohamed'
 		];
@@ -114,6 +114,8 @@ class UserTest extends TestCase
 		$this->assertEquals($newInfo['info'], $user->info);
 
 		$this->assertEquals($newInfo['name'], $user->name);
+
+		$this->assertEquals(true, password_verify('newPassword', $user->password));
 
 
 	}

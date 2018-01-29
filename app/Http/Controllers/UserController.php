@@ -54,18 +54,21 @@ class UserController extends Controller
 	 */
 	public function changeInfo(UserProfileRequest $request)
 	{
-		/*if ($request->filled('current_password') && bcrypt($request->current_pasword)!= Auth::user()->password)
-		{
-			return response()->json(['error' => 'The current password doesn\'t match!']);
-		}*/
-
 		$currentUser = Auth::user();
+
+		// when the user wants to update the password, we validates the current password first
+		if($request->filled('password') && !password_verify($request->current_password, $currentUser->password))
+		{
+			return response()->json(['error' => 'The current password is invalid!'], 401);
+		}
+
+		// update the plain password to encrypted one
+		$request->merge(['password'=> bcrypt($request->password)]);
+
 		$currentUser->update($request->only(['password', 'info', 'name']));
 
 		return response()->json(['success' => 'Your information has been updated'], 200);
     }
-
-
 
 
 }
