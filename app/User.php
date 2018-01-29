@@ -34,4 +34,19 @@ class User extends Authenticatable
     {
     	return $this->hasMany(Task::class);
     }
+
+
+	public function invites()
+	{
+		return $this->belongsToMany('App\User', 'invitations', 'invitor', 'invitee');
+	}
+
+	/**
+	 * Followers Relationship
+	 * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+	 */
+	public function invited()
+	{
+		return $this->belongsToMany('App\User', 'invitations', 'invitee', 'invitor');
+	}
 }

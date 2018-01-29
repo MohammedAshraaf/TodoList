@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\HelperClasses\FilesRemover;
 use App\Http\Requests\UserProfileRequest;
+use App\Invitation;
+use App\Task;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -43,6 +46,12 @@ class UserController extends Controller
     }
 
 
+	/**
+	 * Allows user to change his info
+	 * @param UserProfileRequest $request
+	 *
+	 * @return \Illuminate\Http\JsonResponse
+	 */
 	public function changeInfo(UserProfileRequest $request)
 	{
 		/*if ($request->filled('current_password') && bcrypt($request->current_pasword)!= Auth::user()->password)
@@ -54,6 +63,34 @@ class UserController extends Controller
 		$currentUser->update($request->only(['password', 'info', 'name']));
 
 		return response()->json(['success' => 'Your information has been updated'], 200);
+    }
+
+
+
+    public function inviteToWatchPrivateTask(User $user, Task $task)
+    {
+	    if (!Auth::user()->tasks->contains($task))
+	    {
+		    return response(['error' => 'unauthorized to perform this action'], 401);
+	    }
+
+	    if (!$task->privacy)
+	    {
+		    return response(['error' => 'This task is public!'], 200);
+	    }
+
+
+	    $invitation = Invitation::create([
+	    	'invitor' => Auth::id(),
+		    'invitee' => $user->id,
+		    'task_id' => $task->id,
+		    'status' => 'pending'
+	    ]);
+
+	    return response()->json(['success' => 'Your invitation has been sent', 'data' => [
+	    	'invitation_id' => $invitation->id,
+		    'status' => $invitation->status
+	    ]], 200);
     }
 
 }

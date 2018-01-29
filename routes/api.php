@@ -27,4 +27,6 @@ Route::group(['middleware' => 'auth:api'], function(){
 
 	Route::post('my/info', 'UserController@changeInfo');
 
+	Route::get('invite/{user}/to/{task}', 'UserController@inviteToWatchPrivateTask');
+
 });
