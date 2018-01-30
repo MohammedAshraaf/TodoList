@@ -157,10 +157,10 @@ class InvitationTest extends TestCase
 
 		$response = $this->json('GET', 'api/my/invitations',[], $headers);
 
-		$this->assertCount(5, $currentUser->invited);
 
 
 		$invitations = Invitation::where('invitee', $currentUser->id)->paginate(25);
+
 
 		$invitesCollection = $invitations->getCollection();
 
@@ -173,6 +173,9 @@ class InvitationTest extends TestCase
 
 
 		$this->assertJson($data, $response->json());
+
+		$this->assertCount(5, $invitations);
+
 
 	}
 }
