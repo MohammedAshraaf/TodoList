@@ -46,4 +46,11 @@ Route::group(['middleware' => 'auth:api'], function()
 	Route::get('deny/{invitation}', 'InvitationController@denyInvitation');
 
 	Route::get('my/invitations', 'InvitationController@myInvitations');
+
+
+	/**
+	 * Watches Routes
+	 */
+
+	Route::get('watch/{task}', 'WatchController@watch');
 });
