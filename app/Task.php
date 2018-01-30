@@ -21,4 +21,14 @@ class Task extends Model
     	return $this->hasMany(File::class);
     }
 
+
+    public function user()
+    {
+    	return $this->belongsTo('App\User');
+    }
+
+    public function watchers()
+    {
+    	return $this->belongsToMany('App\User', 'watches', 'task_id', 'user_id');
+    }
 }
