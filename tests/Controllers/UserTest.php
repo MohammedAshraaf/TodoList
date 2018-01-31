@@ -199,6 +199,70 @@ class UserTest extends TestCase
 
 		$this->assertCount(3, $response->json()['data']);
 
+	}
+
+	public function test_user_can_search_for_users_by_email()
+	{
+		$user1 = factory(User::class)->create(['email' => 'hellomohamed@unpluggedweb.com']);
+		$user2 = factory(User::class)->create(['email' => 'mohamedhello@unpluggedweb.com']);
+		$user3 = factory(User::class)->create(['email' => 'mohamed@unpluggedweb.com']);
+
+
+
+		$currentLoggedInUser = $this->createNewUserWithClientRecord();
+
+		$headers = $this->headers($currentLoggedInUser);
+
+		$response = $this->json('GET', 'api/find/user', [
+			'searchMethod' => 'email',
+			'search' => 'mohamed'
+		], $headers );
+
+
+		$this->assertCount(3, $response->json()['data']);
+
+
+		$user3 = factory(User::class)->create(['email' => 'hello@unpluggedweb.com']);
+
+		$response = $this->json('GET', 'api/find/user', [
+			'searchMethod' => 'email',
+			'search' => 'mohamed'
+		], $headers );
+
+		$this->assertCount(3, $response->json()['data']);
+
+	}
+
+
+	public function test_user_can_search_for_users_by_name()
+	{
+		$user1 = factory(User::class)->create(['name' => 'hellomohamed@unpluggedweb.com']);
+		$user2 = factory(User::class)->create(['name' => 'mohamedhello@unpluggedweb.com']);
+		$user3 = factory(User::class)->create(['name' => 'mohamed@unpluggedweb.com']);
+
+
+
+		$currentLoggedInUser = $this->createNewUserWithClientRecord();
+
+		$headers = $this->headers($currentLoggedInUser);
+
+		$response = $this->json('GET', 'api/find/user', [
+			'searchMethod' => 'name',
+			'search' => 'mohamed'
+		], $headers );
+
+
+		$this->assertCount(3, $response->json()['data']);
+
+
+		$user3 = factory(User::class)->create(['email' => 'hello']);
+
+		$response = $this->json('GET', 'api/find/user', [
+			'searchMethod' => 'name',
+			'search' => 'mohamed'
+		], $headers );
+
+		$this->assertCount(3, $response->json()['data']);
 
 	}
 }
