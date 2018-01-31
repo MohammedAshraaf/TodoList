@@ -109,20 +109,19 @@ class UserController extends Controller
 	 */
 	public function newsFeed(Request $request)
 	{
+
 		$limits = $request->limit ?? 15;
 
-		$userTasks = Auth::user()->tasks()->paginate($limits);
-		$watchTasks = Auth::user()->tasksHeWatches()->paginate($limits);
+		$filters = $request->filled('filters') ? $request->filters : [];
 
-		$totalTasks = $userTasks->getCollection()->merge($watchTasks->getCollection());
+		$totalTasks = (new User())->filterTasks($filters, ($limits + 1)/ 2 );
 
-
-			return fractal()
-				->collection($totalTasks)
-				->parseIncludes(['group'])
-				->transformWith(new TaskTransformer())
-				->paginateWith(new IlluminatePaginatorAdapter($this->paginate($limits)))
-				->toArray();
+		return fractal()
+			->collection($totalTasks)
+			->parseIncludes(['group'])
+			->transformWith(new TaskTransformer())
+			->paginateWith(new IlluminatePaginatorAdapter($this->paginate($limits)))
+			->toArray();
     }
 
 	/**

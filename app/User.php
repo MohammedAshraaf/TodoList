@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable
@@ -43,4 +44,41 @@ class User extends Authenticatable
 	}
 
 
+	public function filterTasks($filters, $limit = 15)
+	{
+
+		$user =  new User();
+
+		if(isset($filters['username']))
+		{
+			$user = $user->where('username', $filters['username'])->first();
+		}
+		else
+		{
+			$user = Auth::user();
+		}
+
+
+		$userTasks = $user->tasks();
+		$watchTasks = $user->tasksHeWatches();
+
+		if(isset($filters['status']))
+		{
+			$userTasks = $userTasks->where('status', $filters['status']);
+			$watchTasks = $watchTasks->where('status', $filters['status']);
+		}
+
+		if(isset($filters['deadline']))
+		{
+			$userTasks = $userTasks->where('deadline', '<=', $filters['deadline']);
+			$watchTasks = $watchTasks->where('deadline', '<=', $filters['deadline']);
+		}
+
+		$userTasks = $userTasks->paginate($limit);
+		$watchTasks = $watchTasks->paginate($limit);
+
+
+		return $userTasks->getCollection()->merge($watchTasks->getCollection());
+
+	}
 }

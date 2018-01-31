@@ -286,9 +286,92 @@ class UserTest extends TestCase
 
 		$response = $this->json('GET', 'api/my/feed', [], $headers);
 
+
 		$this->assertCount(2, $response->json()['data']);
 
 	}
-}
 
+
+	public function test_user_can_see_tasks_he_created_or_he_watches_on_his_news_feed_with_Username_filter()
+	{
+
+		$currentUser = $this->createNewUserWithClientRecord();
+
+		$headers = $this->headers($currentUser);
+
+		$taskIOwn = factory(Task::class)->create(['user_id' => $currentUser->id]);
+
+		$user = factory(User::class)->create();
+
+		$taskIShouldBeWatching = factory(Task::class)->create(['user_id' => $user->id, 'privacy' => 0]);
+
+		$response = $this->json('GET', "api/watch/{$taskIShouldBeWatching->id}", [], $headers);
+
+		$taskThatINowWatch = $taskIShouldBeWatching;
+
+		$response = $this->json('GET', 'api/my/feed', [
+			'filters' => [
+				'username' => $user->username
+			]
+		], $headers);
+
+		$this->assertCount(1, $response->json()['data']);
+
+	}
+
+	public function test_user_can_see_tasks_he_created_or_he_watches_on_his_news_feed_with_Status_filter()
+	{
+
+		$currentUser = $this->createNewUserWithClientRecord();
+
+		$headers = $this->headers($currentUser);
+
+		$taskIOwn = factory(Task::class)->create(['user_id' => $currentUser->id]);
+
+		$user = factory(User::class)->create();
+
+		$taskIShouldBeWatching = factory(Task::class)->create(['user_id' => $user->id, 'privacy' => 0, 'status' => 1]);
+
+		$response = $this->json('GET', "api/watch/{$taskIShouldBeWatching->id}", [], $headers);
+
+		$taskThatINowWatch = $taskIShouldBeWatching;
+
+		$response = $this->json('GET', 'api/my/feed', [
+			'filters' => [
+				'status' => 1
+			]
+		], $headers);
+
+		$this->assertCount(1, $response->json()['data']);
+
+	}
+
+
+	public function test_user_can_see_tasks_he_created_or_he_watches_on_his_news_feed_with_Deadline_filter()
+	{
+
+		$currentUser = $this->createNewUserWithClientRecord();
+
+		$headers = $this->headers($currentUser);
+
+		$taskIOwn = factory(Task::class)->create(['user_id' => $currentUser->id, 'deadline' => '2018-8-15 00:00:00']);
+
+		$user = factory(User::class)->create();
+
+		$taskIShouldBeWatching = factory(Task::class)->create(['user_id' => $user->id, 'privacy' => 0, 'deadline' => '2019-2-1']);
+
+		$response = $this->json('GET', "api/watch/{$taskIShouldBeWatching->id}", [], $headers);
+
+		$taskThatINowWatch = $taskIShouldBeWatching;
+
+		$response = $this->json('GET', 'api/my/feed', [
+			'filters' => [
+				'deadline' => '2018-10-1'
+			]
+		], $headers);
+
+		$this->assertCount(1, $response->json()['data']);
+
+	}
+}
 
