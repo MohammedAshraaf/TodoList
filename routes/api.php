@@ -35,7 +35,11 @@ Route::group(['middleware' => 'auth:api'], function()
 
 	Route::post('my/info', 'UserController@changeInfo');
 
+	Route::get('my/feed', 'UserController@newsFeed');
+
 	Route::get('find/user', 'UserController@search');
+
+
 
 
 	/**

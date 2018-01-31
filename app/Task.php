@@ -24,11 +24,11 @@ class Task extends Model
 
     public function user()
     {
-    	return $this->belongsTo('App\User');
+    	return $this->belongsTo(User::class);
     }
 
     public function watchers()
     {
-    	return $this->belongsToMany('App\User', 'watches', 'task_id', 'user_id');
+    	return $this->belongsToMany(User::class, 'watches', 'task_id', 'user_id');
     }
 }

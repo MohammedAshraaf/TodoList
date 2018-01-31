@@ -6,11 +6,16 @@ use App\HelperClasses\FilesRemover;
 use App\Http\Requests\UserProfileRequest;
 use App\Invitation;
 use App\Task;
+use App\Transformers\TaskTransformer;
 use App\Transformers\UserTransformer;
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use League\Fractal\Pagination\IlluminatePaginatorAdapter;
+use Mockery\Exception;
 
 class UserController extends Controller
 {
@@ -95,5 +100,45 @@ class UserController extends Controller
 
     }
 
+
+	/**
+	 * Shows tasks in newsFeeds
+	 * @param Request $request
+	 *
+	 * @return mixed
+	 */
+	public function newsFeed(Request $request)
+	{
+		$limits = $request->limit ?? 15;
+
+		$userTasks = Auth::user()->tasks()->paginate($limits);
+		$watchTasks = Auth::user()->tasksHeWatches()->paginate($limits);
+
+		$totalTasks = $userTasks->getCollection()->merge($watchTasks->getCollection());
+
+
+			return fractal()
+				->collection($totalTasks)
+				->parseIncludes(['group'])
+				->transformWith(new TaskTransformer())
+				->paginateWith(new IlluminatePaginatorAdapter($this->paginate($limits)))
+				->toArray();
+    }
+
+	/**
+	 * Paginates collections , mainly for different models
+	 * @param $items
+	 * @param int $perPage
+	 * @param null $page
+	 * @param array $options
+	 *
+	 * @return LengthAwarePaginator
+	 */
+	public function paginate($items, $perPage = 15, $page = null, $options = [])
+	{
+		$page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
+		$items = $items instanceof Collection ? $items : Collection::make($items);
+		return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
+	}
 
 }

@@ -265,6 +265,30 @@ class UserTest extends TestCase
 		$this->assertCount(3, $response->json()['data']);
 
 	}
+
+
+	public function test_user_can_see_tasks_he_created_or_he_watches_on_his_news_feed_without_filters(  )
+	{
+
+		$currentUser = $this->createNewUserWithClientRecord();
+
+		$headers = $this->headers($currentUser);
+
+		$taskIOwn = factory(Task::class)->create(['user_id' => $currentUser->id]);
+
+		$user = factory(User::class)->create();
+
+		$taskIshouldBeWatching = factory(Task::class)->create(['user_id' => $user->id, 'privacy' => 0]);
+
+		$response = $this->json('GET', "api/watch/{$taskIshouldBeWatching->id}", [], $headers);
+
+		$taskThatINowWatch = $taskIshouldBeWatching;
+
+		$response = $this->json('GET', 'api/my/feed', [], $headers);
+
+		$this->assertCount(2, $response->json()['data']);
+
+	}
 }
 
 
