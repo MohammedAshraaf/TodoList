@@ -168,6 +168,39 @@ class UserTest extends TestCase
 
 		$this->assertEquals('accepted', $invitation->status);
 	}
+
+	public function test_user_can_search_for_users_by_username(  )
+	{
+		$user1 = factory(User::class)->create(['username' => 'hellomohamed']);
+		$user2 = factory(User::class)->create(['username' => 'mohamedhello']);
+		$user3 = factory(User::class)->create(['username' => 'mohamed']);
+
+
+
+		$currentLoggedInUser = $this->createNewUserWithClientRecord();
+
+		$headers = $this->headers($currentLoggedInUser);
+
+		$response = $this->json('GET', 'api/find/user', [
+			'searchMethod' => 'username',
+			'search' => 'mohamed'
+		], $headers );
+
+
+		$this->assertCount(3, $response->json()['data']);
+
+
+		$user3 = factory(User::class)->create(['username' => 'hello']);
+
+		$response = $this->json('GET', 'api/find/user', [
+			'searchMethod' => 'username',
+			'search' => 'mohamed'
+		], $headers );
+
+		$this->assertCount(3, $response->json()['data']);
+
+
+	}
 }
 
 

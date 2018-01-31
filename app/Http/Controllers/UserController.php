@@ -6,9 +6,11 @@ use App\HelperClasses\FilesRemover;
 use App\Http\Requests\UserProfileRequest;
 use App\Invitation;
 use App\Task;
+use App\Transformers\UserTransformer;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use League\Fractal\Pagination\IlluminatePaginatorAdapter;
 
 class UserController extends Controller
 {
@@ -68,6 +70,29 @@ class UserController extends Controller
 		$currentUser->update($request->only(['password', 'info', 'name']));
 
 		return response()->json(['success' => 'Your information has been updated'], 200);
+    }
+
+
+	public function search(Request $request)
+	{
+
+
+		// user can't request more that 500 records
+		$limit = min(($request->limit ?? 15), 500);
+
+		// get the current user's tasks
+		$users = User::where($request->searchMethod, 'LIKE', "%{$request->search}%")->paginate($limit);
+
+		$userCollection = $users->getCollection();
+
+		// build the format
+		return fractal()
+			->collection($userCollection)
+			->parseIncludes(['group'])
+			->transformWith(new UserTransformer())
+			->paginateWith(new IlluminatePaginatorAdapter($users))
+			->toArray();
+
     }
 
 

@@ -29,11 +29,13 @@ Route::group(['middleware' => 'auth:api'], function()
 
 
 	/**
-	 * Users Info Routes
+	 * Users Routes
 	 */
 	Route::post('my/avatar', 'UserController@changeAvatar');
 
 	Route::post('my/info', 'UserController@changeInfo');
+
+	Route::get('find/user', 'UserController@search');
 
 
 	/**
