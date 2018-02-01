@@ -5,13 +5,11 @@ namespace Tests\Feature\Controller;
 use App\Invitation;
 use App\Task;
 use App\User;
-use Faker\Factory;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+
 
 class UserTest extends TestCase
 {

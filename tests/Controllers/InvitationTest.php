@@ -6,14 +6,11 @@ use App\Invitation;
 use App\Task;
 use App\Transformers\InvitationTransformer;
 use App\User;
-use Faker\Factory;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Auth;
 use League\Fractal\Pagination\IlluminatePaginatorAdapter;
 use Tests\TestCase;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+
 
 class InvitationTest extends TestCase
 {
