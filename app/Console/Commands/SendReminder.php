@@ -42,25 +42,24 @@ class SendReminder extends Command
     public function handle()
     {
 	    Task::with('user')
-	                      ->where('notified', 0)
-	                      ->chunk(100, function($tasks){
-	                      	    foreach ($tasks as $task)
-	                            {
-	                            	$timeBetweenTaskAndDeadline = strtotime($task->deadline) - strtotime($task->updated_at);
-	                            	$timePassed = (strtotime('now') - strtotime($task->updated_at));
-
-	                            	if( $timePassed / $timeBetweenTaskAndDeadline < 0.8)
-		                            {
-		                            	continue;
-		                            }
-
-									$task['user']->notify(new ReminderNotification([
-										'task_name' => $task->name,
-										'task_deadline' => $task->deadline
-									]));
-	                            	$task->notified = 1;
-	                            	$task->save();
-	                            }
-	                      });
+	        ->where('notified', 0)
+	        ->chunk(100, function($tasks){
+                    foreach ($tasks as $task)
+                    {
+                        $timeBetweenTaskAndDeadline = strtotime($task->deadline) - strtotime($task->updated_at);
+                        $timePassed = abs(strtotime('now') - strtotime($task->updated_at));
+                        if( $timePassed / $timeBetweenTaskAndDeadline < 0.8)
+                        {
+                            continue;
+                        }
+						$task['user']->notify(new ReminderNotification([
+							'task_name' => $task->name,
+							'task_deadline' => $task->deadline
+						]));
+                        $task->notified = 1;
+                        $task->save();
+                    }
+            });
     }
+
 }

@@ -8,6 +8,7 @@ use App\User;
 use Carbon\Carbon;
 use function GuzzleHttp\Psr7\str;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Mockery\Matcher\Not;
 use Tests\TestCase;
@@ -40,33 +41,28 @@ class NotificationTest extends TestCase
 
 	public function test_user_gets_notification_when_task_passes_80_percent_of_its_time()
 	{
-		$user = factory(User::class)->create();
-
-		$anotherUser = factory(User::class)->create();
-
 		$deadlineAfterTenMinutes = strtotime('now') + 10 * 60;
 
-		$updatedAtAfterNineMinutes = strtotime('now') + 9 * 60;
+		$updatedAtBeforeHour = strtotime('now') -  60 * 60;
 
 
-		$SecondUpdatedAtAfterThreeMinutes = strtotime('now') + 3 * 60;
+		$secondUpdatedAtBeforeOneMinutes = strtotime('now') - 3 * 60;
 
 
 
 		$taskForFirstUser = factory(Task::class)->create([
 			'deadline' => Carbon::createFromTimestamp($deadlineAfterTenMinutes)->toDateTimeString(),
-			'updated_at' => Carbon::createFromTimestamp($updatedAtAfterNineMinutes)->toDateTimeString()
+			'updated_at' => Carbon::createFromTimestamp($updatedAtBeforeHour)->toDateTimeString()
 		]);
 
 
 
 		$taskForSecondUser = factory(Task::class)->create([
 			'deadline' => Carbon::createFromTimestamp($deadlineAfterTenMinutes)->toDateTimeString(),
-			'updated_at' => Carbon::createFromTimestamp($SecondUpdatedAtAfterThreeMinutes)->toDateTimeString()
+			'updated_at' => Carbon::createFromTimestamp($secondUpdatedAtBeforeOneMinutes)->toDateTimeString()
 		]);
 
-
-		exec('php artisan task:reminder');
+		Artisan::call('task:reminder');
 
 		$this->assertCount(1, Notification::all());
 	}
