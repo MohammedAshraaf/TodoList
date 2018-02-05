@@ -15,4 +15,4 @@ before_script:
 
 
 script:
-  - ./vendor/bin/phpunit tests/Controllers/
+  - ./vendor/bin/phpunit tests
