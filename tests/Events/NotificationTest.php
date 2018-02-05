@@ -5,6 +5,8 @@ namespace Tests\Controller;
 use App\Notification;
 use App\Task;
 use App\User;
+use Carbon\Carbon;
+use function GuzzleHttp\Psr7\str;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Auth;
 use Mockery\Matcher\Not;
@@ -15,55 +17,16 @@ class NotificationTest extends TestCase
 {
 	use DatabaseTransactions;
 
-	/**
-	 * Creates new user with client id to authenticate through passport
-	 * @return mixed
-	 */
-	public function createNewUserWithClientRecord()
-	{
-		$user = factory(User::class)->create();
-
-		Auth::login($user);
-
-		$response = $this->json('POST' , '/oauth/clients', [
-			'name' => 'MyClient',
-			'redirect' => 'http://localhost'
-		]);
-
-		return $user;
-
-	}
-
-	/**
-	 * Creates headers for passport token
-	 * @param null $user
-	 *
-	 * @return array
-	 */
-	protected function headers($user = null)
-	{
-		$headers = ['Accept' => 'application/json'];
-
-		if (!is_null($user)) {
-			$token = $user->createToken('Token Name')->accessToken;
-			$headers['Authorization'] = 'Bearer ' . $token;
-		}
-
-		return $headers;
-	}
-
 
 	public function test_user_gets_notification_when_someone_watches_his_task()
 	{
 		$userWhoOwnsTheTask = factory(User::class)->create();
 
-		$currentLoggedInUser = $this->createNewUserWithClientRecord();
-
-		$headers = $this->headers($currentLoggedInUser);
+		$currentLoggedInUser = $this->createAndAuthenticateUser();
 
 		$publicTask = factory(Task::class)->create(['privacy' => 0, 'user_id' => $userWhoOwnsTheTask->id]);
 
-		$response = $this->json('GET', "api/watch/{$publicTask->id}", [], $headers);
+		$response = $this->get( "api/watch/{$publicTask->id}");
 
 		$notification = Notification::where('notifiable_id', $userWhoOwnsTheTask->id)
 		                            ->where('notifiable_type', 'App\User')
@@ -71,6 +34,41 @@ class NotificationTest extends TestCase
 
 		$this->assertEquals(false, is_null($notification));
 
+	}
+
+
+
+	public function test_user_gets_notification_when_task_passes_80_percent_of_its_time()
+	{
+		$user = factory(User::class)->create();
+
+		$anotherUser = factory(User::class)->create();
+
+		$deadlineAfterTenMinutes = strtotime('now') + 10 * 60;
+
+		$updatedAtAfterNineMinutes = strtotime('now') + 9 * 60;
+
+
+		$SecondUpdatedAtAfterThreeMinutes = strtotime('now') + 3 * 60;
+
+
+
+		$taskForFirstUser = factory(Task::class)->create([
+			'deadline' => Carbon::createFromTimestamp($deadlineAfterTenMinutes)->toDateTimeString(),
+			'updated_at' => Carbon::createFromTimestamp($updatedAtAfterNineMinutes)->toDateTimeString()
+		]);
+
+
+
+		$taskForSecondUser = factory(Task::class)->create([
+			'deadline' => Carbon::createFromTimestamp($deadlineAfterTenMinutes)->toDateTimeString(),
+			'updated_at' => Carbon::createFromTimestamp($SecondUpdatedAtAfterThreeMinutes)->toDateTimeString()
+		]);
+
+
+		exec('php artisan task:reminder');
+
+		$this->assertCount(1, Notification::all());
 	}
 
 }

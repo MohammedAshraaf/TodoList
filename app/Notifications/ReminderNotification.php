@@ -7,20 +7,20 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 
-class WatchedNotification extends Notification implements ShouldQueue
+class ReminderNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected $watched;
+    protected $reminder;
 
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct($watched)
+    public function __construct($reminder)
     {
-        $this->watched = $watched;
+        $this->reminder = $reminder;
     }
 
 
@@ -64,8 +64,9 @@ class WatchedNotification extends Notification implements ShouldQueue
 
     public function toDatabase($notifiable)
     {
-    	return [
-    		'message' => 'The user ' . $this->watched['watcher_username'] . ' watched your task: ' . $this->watched['task_name']
+	    return [
+		    'message' => 'Your Task: '. $this->reminder['task_name'] .
+		                 ' is about to reach its deadline: '. $this->reminder['task_deadline']
 	    ];
     }
 }
