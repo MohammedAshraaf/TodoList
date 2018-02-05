@@ -17,64 +17,19 @@ class InvitationTest extends TestCase
 
 	use DatabaseTransactions;
 
-	/**
-	 * Creates new user with client id to authenticate through passport
-	 *
-	 * @param array $attributes
-	 *
-	 * @return mixed
-	 */
-	public function createNewUserWithClientRecord($attributes = [])
-	{
-		$user = factory(User::class)->create($attributes);
-
-		Auth::login($user);
-
-		$response = $this->json('POST' , '/oauth/clients', [
-			'name' => 'MyClient',
-			'redirect' => 'http://localhost'
-		]);
-
-		return $user;
-
-	}
-
-	/**
-	 * Creates headers for passport token
-	 * @param null $user
-	 *
-	 * @return array
-	 */
-	protected function headers($user = null)
-	{
-		$headers = ['Accept' => 'application/json'];
-
-		if (!is_null($user)) {
-			$token = $user->createToken('Token Name')->accessToken;
-			$headers['Authorization'] = 'Bearer ' . $token;
-		}
-
-		return $headers;
-	}
-
-
-
 	public function test_user_can_invite_another_user_to_private_task()
 	{
-		$user = $this->createNewUserWithClientRecord();
+		$user = factory(User::class)->create();
 
-		Auth::logout($user);
+		$authenticatedUser = $this->createAndAuthenticateUser();
 
-		$secondUser = $this->createNewUserWithClientRecord();
+		$task = factory(Task::class)->create(['user_id' => $authenticatedUser->id, 'privacy' => 1]);
 
-		$task = factory(Task::class)->create(['user_id' => $secondUser->id, 'privacy' => 1]);
-		$headers = $this->headers($secondUser);
-
-		$response = $this->json('GET', "api/invite/{$user->id}/to/{$task->id}", [], $headers);
+		$response = $this->get(route('invite.users', ['user' => $user->id, 'task' => $task->id]));
 
 		$invitation = Invitation::first();
 
-		$this->assertEquals($invitation->invitor, $secondUser->id);
+		$this->assertEquals($invitation->invitor, $authenticatedUser->id);
 		$this->assertEquals($invitation->invitee, $user->id);
 		$this->assertEquals($invitation->task_id, $task->id);
 		$response->assertJson([
@@ -87,9 +42,7 @@ class InvitationTest extends TestCase
 
 	public function test_user_can_accept_invitation_to_watch_task()
 	{
-		$invitee = $this->createNewUserWithClientRecord();
-
-		$headers = $this->headers($invitee);
+		$invitee = $this->createAndAuthenticateUser();
 
 		$task = factory(Task::class)->create(['privacy' => 1]);
 
@@ -101,18 +54,17 @@ class InvitationTest extends TestCase
 			'task_id' => $task->id
 		]);
 
-		$response = $this->json('GET', "api/accept/{$invitation->id}", [], $headers);
+		$response = $this->get(route('invite.accept', ['invitation' => $invitation->id]));
 
 		$invitation = Invitation::find($invitation->id);
 
 		$this->assertEquals('accepted', $invitation->status);
 	}
 
+
 	public function test_user_can_deny_an_invitation()
 	{
-		$invitee = $this->createNewUserWithClientRecord();
-
-		$headers = $this->headers($invitee);
+		$invitee = $this->createAndAuthenticateUser();
 
 		$task = factory(Task::class)->create(['privacy' => 1]);
 
@@ -124,19 +76,20 @@ class InvitationTest extends TestCase
 			'task_id' => $task->id
 		]);
 
-		$response = $this->json('GET', "api/deny/{$invitation->id}", [], $headers);
+		$response = $this->get(route('invite.deny', ['invitation' => $invitation->id]));
 
 		$invitation = Invitation::find($invitation->id);
 
 		$this->assertEquals('rejected', $invitation->status);
 	}
 
+
 	public function test_user_can_display_the_invitations_he_got()
 	{
 		$tasks = array();
 		$users = array();
 		$invitationsIds = array();
-		$currentUser = $this->createNewUserWithClientRecord();
+		$currentUser = $this->createAndAuthenticateUser();
 
 		for($i = 0; $i < 5; ++$i)
 		{
@@ -150,9 +103,8 @@ class InvitationTest extends TestCase
 			])->id;
 		}
 
-		$headers = $this->headers($currentUser);
 
-		$response = $this->json('GET', 'api/my/invitations',[], $headers);
+		$response = $this->get(route('invite.list'));
 
 
 

@@ -16,58 +16,18 @@ class UserTest extends TestCase
 
 	use DatabaseTransactions;
 
-	/**
-	 * Creates new user with client id to authenticate through passport
-	 *
-	 * @param array $attributes
-	 *
-	 * @return mixed
-	 */
-	public function createNewUserWithClientRecord($attributes = [])
-	{
-		$user = factory(User::class)->create($attributes);
-
-		Auth::login($user);
-
-		$response = $this->json('POST' , '/oauth/clients', [
-			'name' => 'MyClient',
-			'redirect' => 'http://localhost'
-		]);
-
-		return $user;
-
-	}
-
-	/**
-	 * Creates headers for passport token
-	 * @param null $user
-	 *
-	 * @return array
-	 */
-	protected function headers($user = null)
-	{
-		$headers = ['Accept' => 'application/json'];
-
-		if (!is_null($user)) {
-			$token = $user->createToken('Token Name')->accessToken;
-			$headers['Authorization'] = 'Bearer ' . $token;
-		}
-
-		return $headers;
-	}
 
 
 	public function test_user_can_change_avatar()
 	{
 
-		$user = $this->createNewUserWithClientRecord();
+		$user = $this->createAndAuthenticateUser();
 
-		$headers = $this->headers($user);
 
-		$response = $this->json('POST', 'api/my/avatar', [
+		$response = $this->post(route('user.avatar'), [
 				'avatar' => UploadedFile::fake()->image('avatar.jpg'),
 
-		], $headers);
+		]);
 
 
 		$this->assertEquals(true, file_exists(storage_path('app/' . Auth::user()->avatar)));
@@ -75,10 +35,10 @@ class UserTest extends TestCase
 
 		$firstFile = Auth::user()->avatar;
 
-		$response = $this->json('POST', 'api/my/avatar', [
+		$response = $this->post(route('user.avatar'), [
 			'avatar' => UploadedFile::fake()->image('avatar.jpg'),
 
-		], $headers);
+		]);
 
 
 		$this->assertEquals(true, file_exists(storage_path('app/' . Auth::user()->avatar)));
@@ -92,9 +52,7 @@ class UserTest extends TestCase
 
 	public function test_user_can_update_info()
 	{
-		$user = $this->createNewUserWithClientRecord(['password' => bcrypt('password')]);
-
-		$headers = $this->headers($user);
+		$user = $this->createAndAuthenticateUser([ 'password' => bcrypt('password')]);
 
 		$newInfo = [
 			'password' =>'newPassword',
@@ -104,7 +62,7 @@ class UserTest extends TestCase
 			'name' => 'Mohamed'
 		];
 
-		$response = $this->json('POST', 'api/my/info', $newInfo, $headers);
+		$response = $this->post(route('user.info'), $newInfo);
 
 
 		$user = User::find(Auth::id());
@@ -121,16 +79,13 @@ class UserTest extends TestCase
 
 	public function test_user_can_invite_another_user_to_private_task()
 	{
-		$user = $this->createNewUserWithClientRecord();
+		$user = factory(User::class)->create();
 
-		Auth::logout($user);
-
-		$secondUser = $this->createNewUserWithClientRecord();
+		$secondUser = $this->createAndAuthenticateUser();
 
 		$task = factory(Task::class)->create(['user_id' => $secondUser->id, 'privacy' => 1]);
-		$headers = $this->headers($secondUser);
 
-		$response = $this->json('GET', "api/invite/{$user->id}/to/{$task->id}", [], $headers);
+		$response = $this->json('GET', "api/invite/{$user->id}/to/{$task->id}");
 
 		$invitation = Invitation::first();
 
@@ -147,9 +102,8 @@ class UserTest extends TestCase
 
 	public function test_user_can_accept_invitation_to_watch_task()
 	{
-		$invitee = $this->createNewUserWithClientRecord();
+		$invitee = $this->createAndAuthenticateUser();
 
-		$headers = $this->headers($invitee);
 
 		$task = factory(Task::class)->create(['privacy' => 1]);
 
@@ -161,11 +115,13 @@ class UserTest extends TestCase
 			'task_id' => $task->id
 		]);
 
-		$response = $this->json('GET', "api/accept/{$invitation->id}", [], $headers);
+		$response = $this->json('GET', "api/accept/{$invitation->id}");
 		$invitation = Invitation::find($invitation->id);
 
 		$this->assertEquals('accepted', $invitation->status);
 	}
+
+
 
 	public function test_user_can_search_for_users_by_username(  )
 	{
@@ -175,14 +131,13 @@ class UserTest extends TestCase
 
 
 
-		$currentLoggedInUser = $this->createNewUserWithClientRecord();
+		$currentLoggedInUser = $this->createAndAuthenticateUser();
 
-		$headers = $this->headers($currentLoggedInUser);
 
-		$response = $this->json('GET', 'api/find/user', [
+		$response = $this->get(route('user.find',[
 			'searchMethod' => 'username',
 			'search' => 'mohamed'
-		], $headers );
+		]));
 
 
 		$this->assertCount(3, $response->json()['data']);
@@ -190,10 +145,10 @@ class UserTest extends TestCase
 
 		$user3 = factory(User::class)->create(['username' => 'hello']);
 
-		$response = $this->json('GET', 'api/find/user', [
+		$response = $this->get(route('user.find', [
 			'searchMethod' => 'username',
 			'search' => 'mohamed'
-		], $headers );
+		] ));
 
 		$this->assertCount(3, $response->json()['data']);
 
@@ -207,14 +162,13 @@ class UserTest extends TestCase
 
 
 
-		$currentLoggedInUser = $this->createNewUserWithClientRecord();
+		$currentLoggedInUser = $this->createAndAuthenticateUser();
 
-		$headers = $this->headers($currentLoggedInUser);
 
-		$response = $this->json('GET', 'api/find/user', [
+		$response = $this->get(route('user.find', [
 			'searchMethod' => 'email',
 			'search' => 'mohamed'
-		], $headers );
+		]) );
 
 
 		$this->assertCount(3, $response->json()['data']);
@@ -222,10 +176,10 @@ class UserTest extends TestCase
 
 		$user3 = factory(User::class)->create(['email' => 'hello@unpluggedweb.com']);
 
-		$response = $this->json('GET', 'api/find/user', [
+		$response = $this->get(route('user.find', [
 			'searchMethod' => 'email',
 			'search' => 'mohamed'
-		], $headers );
+		]) );
 
 		$this->assertCount(3, $response->json()['data']);
 
@@ -240,14 +194,13 @@ class UserTest extends TestCase
 
 
 
-		$currentLoggedInUser = $this->createNewUserWithClientRecord();
+		$currentLoggedInUser = $this->createAndAuthenticateUser();
 
-		$headers = $this->headers($currentLoggedInUser);
 
-		$response = $this->json('GET', 'api/find/user', [
+		$response = $this->get(route('user.find',  [
 			'searchMethod' => 'name',
 			'search' => 'mohamed'
-		], $headers );
+		] ));
 
 
 		$this->assertCount(3, $response->json()['data']);
@@ -255,10 +208,10 @@ class UserTest extends TestCase
 
 		$user3 = factory(User::class)->create(['email' => 'hello']);
 
-		$response = $this->json('GET', 'api/find/user', [
+		$response = $this->get(route('user.find',[
 			'searchMethod' => 'name',
 			'search' => 'mohamed'
-		], $headers );
+		] ));
 
 		$this->assertCount(3, $response->json()['data']);
 
@@ -268,9 +221,8 @@ class UserTest extends TestCase
 	public function test_user_can_see_tasks_he_created_or_he_watches_on_his_news_feed_without_filters(  )
 	{
 
-		$currentUser = $this->createNewUserWithClientRecord();
+		$currentUser = $this->createAndAuthenticateUser();
 
-		$headers = $this->headers($currentUser);
 
 		$taskIOwn = factory(Task::class)->create(['user_id' => $currentUser->id]);
 
@@ -278,11 +230,11 @@ class UserTest extends TestCase
 
 		$taskIshouldBeWatching = factory(Task::class)->create(['user_id' => $user->id, 'privacy' => 0]);
 
-		$response = $this->json('GET', "api/watch/{$taskIshouldBeWatching->id}", [], $headers);
+		$response = $this->get(route('watch.task', ['task' => $taskIshouldBeWatching]));
 
 		$taskThatINowWatch = $taskIshouldBeWatching;
 
-		$response = $this->json('GET', 'api/my/feed', [], $headers);
+		$response = $this->get(route('user.feed'));
 
 
 		$this->assertCount(2, $response->json()['data']);
@@ -293,9 +245,7 @@ class UserTest extends TestCase
 	public function test_user_can_see_tasks_he_created_or_he_watches_on_his_news_feed_with_Username_filter()
 	{
 
-		$currentUser = $this->createNewUserWithClientRecord();
-
-		$headers = $this->headers($currentUser);
+		$currentUser = $this->createAndAuthenticateUser();
 
 		$taskIOwn = factory(Task::class)->create(['user_id' => $currentUser->id]);
 
@@ -303,15 +253,15 @@ class UserTest extends TestCase
 
 		$taskIShouldBeWatching = factory(Task::class)->create(['user_id' => $user->id, 'privacy' => 0]);
 
-		$response = $this->json('GET', "api/watch/{$taskIShouldBeWatching->id}", [], $headers);
+		$response = $this->get(route('watch.task', ['task' => $taskIShouldBeWatching->id]));
 
 		$taskThatINowWatch = $taskIShouldBeWatching;
 
-		$response = $this->json('GET', 'api/my/feed', [
+		$response = $this->get(route('user.feed',  [
 			'filters' => [
 				'username' => $user->username
 			]
-		], $headers);
+		]));
 
 		$this->assertCount(1, $response->json()['data']);
 
@@ -320,9 +270,8 @@ class UserTest extends TestCase
 	public function test_user_can_see_tasks_he_created_or_he_watches_on_his_news_feed_with_Status_filter()
 	{
 
-		$currentUser = $this->createNewUserWithClientRecord();
+		$currentUser = $this->createAndAuthenticateUser();
 
-		$headers = $this->headers($currentUser);
 
 		$taskIOwn = factory(Task::class)->create(['user_id' => $currentUser->id]);
 
@@ -330,15 +279,15 @@ class UserTest extends TestCase
 
 		$taskIShouldBeWatching = factory(Task::class)->create(['user_id' => $user->id, 'privacy' => 0, 'status' => 1]);
 
-		$response = $this->json('GET', "api/watch/{$taskIShouldBeWatching->id}", [], $headers);
+		$response = $this->get(route('watch.task', ['task' => $taskIShouldBeWatching->id]));
 
 		$taskThatINowWatch = $taskIShouldBeWatching;
 
-		$response = $this->json('GET', 'api/my/feed', [
+		$response = $this->get(route('user.feed', [
 			'filters' => [
 				'status' => 1
 			]
-		], $headers);
+		]));
 
 		$this->assertCount(1, $response->json()['data']);
 
@@ -348,9 +297,7 @@ class UserTest extends TestCase
 	public function test_user_can_see_tasks_he_created_or_he_watches_on_his_news_feed_with_Deadline_filter()
 	{
 
-		$currentUser = $this->createNewUserWithClientRecord();
-
-		$headers = $this->headers($currentUser);
+		$currentUser = $this->createAndAuthenticateUser();
 
 		$taskIOwn = factory(Task::class)->create(['user_id' => $currentUser->id, 'deadline' => '2018-8-15 00:00:00']);
 
@@ -358,15 +305,15 @@ class UserTest extends TestCase
 
 		$taskIShouldBeWatching = factory(Task::class)->create(['user_id' => $user->id, 'privacy' => 0, 'deadline' => '2019-2-1']);
 
-		$response = $this->json('GET', "api/watch/{$taskIShouldBeWatching->id}", [], $headers);
+		$response = $this->get(route('watch.task', ['task' => $taskIShouldBeWatching->id]));
 
 		$taskThatINowWatch = $taskIShouldBeWatching;
 
-		$response = $this->json('GET', 'api/my/feed', [
+		$response = $this->get(route('user.feed', [
 			'filters' => [
 				'deadline' => '2018-10-1'
 			]
-		], $headers);
+		]));
 
 		$this->assertCount(1, $response->json()['data']);
 

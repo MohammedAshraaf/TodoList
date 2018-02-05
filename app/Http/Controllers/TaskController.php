@@ -59,19 +59,13 @@ class TaskController extends Controller
 		    'deadline',
 	    ]));
 
-    	if(!$task)
-	    {
-	    	return response()->json(['error' => "Couldn't Store the Task"], 200);
-	    }
-
-
-
     	return response()->json(['success' => 'Task has been created!', 'id' => $task->id],200);
     }
 
 
 	/**
 	 * Shows specific task
+	 *
 	 * @param Task $task
 	 *
 	 * @return \Illuminate\Http\JsonResponse
@@ -87,6 +81,7 @@ class TaskController extends Controller
 
 	/**
 	 * Updates a specific task
+	 *
 	 * @param Task $task
 	 * @param TaskRequest $request
 	 *
@@ -108,6 +103,8 @@ class TaskController extends Controller
 			'status',
 			'deadline',
 		]));
+
+
 
 		return response()->json(Fractal::create()
 		                               ->item($task)

@@ -5,6 +5,7 @@ namespace Tests\Controller;
 use App\File;
 use App\Task;
 use App\User;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -15,61 +16,26 @@ class FileTest extends TestCase
 {
 	use DatabaseTransactions;
 
-	/**
-	 * Creates new user with client id to authenticate through passport
-	 * @return mixed
-	 */
-	public function createNewUserWithClientRecord()
+
+	/** @test */
+	function test_uploading_files_to_task()
 	{
-		$user = factory(User::class)->create();
-
-		Auth::login($user);
-
-		$response = $this->json('POST' , '/oauth/clients', [
-			'name' => 'hello',
-			'redirect' => 'http://localhost'
-		]);
-
-		return $user;
-
-	}
-
-	/**
-	 * Creates headers for passport token
-	 * @param null $user
-	 *
-	 * @return array
-	 */
-	protected function headers($user = null)
-	{
-		$headers = ['Accept' => 'application/json'];
-
-		if (!is_null($user)) {
-			$token = $user->createToken('Token Name')->accessToken;
-			$headers['Authorization'] = 'Bearer ' . $token;
-		}
-
-		return $headers;
-	}
-
-
-
-	public function test_uploading_files_to_task()
-	{
+		$this->withoutExceptionHandling();
 
 		$task = factory(Task::class)->create();
 
-		$user = $this->createNewUserWithClientRecord();
+		$user = $this->createAndAuthenticateUser();
 
-		$headers = $this->headers($user);
-
-
-		$response = $this->json('POST', 'api/tasks/'.$task->id.'/files', [
+		$files =   [
 			'files' =>[
 				UploadedFile::fake()->image('file1.jpg'),
 
 			]
-		], $headers);
+		];
+
+		$response = $this->hitUploadFilesEndpoint($task, $files);
+
+		$response->assertStatus(200);
 
 		foreach (File::all() as $file)
 		{
@@ -84,23 +50,20 @@ class FileTest extends TestCase
 		$task = factory(Task::class)->create();
 
 
-		$user = $this->createNewUserWithClientRecord();
-
-		$headers = $this->headers($user);
+		$user = $this->createAndAuthenticateUser();
 
 
 		// and we attached file to it
-		$response = $this->json('POST', 'api/tasks/'.$task->id.'/files', [
+		$response = $this->post('api/tasks/'.$task->id.'/files', [
 			'files' =>[
 				UploadedFile::fake()->image('file1.jpg'),
 
-			]
-		], $headers);
+			]]);
 
 		$file = $task->files()->first();
 
 		// when removing the file
-		$response = $this->json('delete', 'api/tasks/' . $task->id . '/files/'.$file->id, [], $headers);
+		$response = $this->delete(route('deleteFile', ['task' => $task->id, 'file' => $file->id]));
 
 
 
@@ -108,6 +71,10 @@ class FileTest extends TestCase
 		$this->assertEquals(false, file_exists(storage_path('app/' . $file->path)));
 
 		$this->assertEquals(null, File::find($file->id));
+	}
+
+	private function hitUploadFilesEndpoint(Task $task, array $files ) {
+		return $this->post(route('uploadFile', ['task' => $task->id]),$files);
 	}
 
 

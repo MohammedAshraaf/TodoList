@@ -16,59 +16,17 @@ class WatchTest extends TestCase
 
 	use DatabaseTransactions;
 
-	/**
-	 * Creates new user with client id to authenticate through passport
-	 *
-	 * @param array $attributes
-	 *
-	 * @return mixed
-	 */
-	public function createNewUserWithClientRecord($attributes = [])
-	{
-		$user = factory(User::class)->create($attributes);
-
-		Auth::login($user);
-
-		$response = $this->json('POST' , '/oauth/clients', [
-			'name' => 'MyClient',
-			'redirect' => 'http://localhost'
-		]);
-
-		return $user;
-
-	}
-
-	/**
-	 * Creates headers for passport token
-	 * @param null $user
-	 *
-	 * @return array
-	 */
-	protected function headers($user = null)
-	{
-		$headers = ['Accept' => 'application/json'];
-
-		if (!is_null($user)) {
-			$token = $user->createToken('Token Name')->accessToken;
-			$headers['Authorization'] = 'Bearer ' . $token;
-		}
-
-		return $headers;
-	}
-
-
 
 	public function test_user_can_watch_public_task()
 	{
 		$userWhoOwnsTheTask = factory(User::class)->create();
 
-		$currentLoggedInUser = $this->createNewUserWithClientRecord();
+		$currentLoggedInUser = $this->createAndAuthenticateUser();
 
-		$headers = $this->headers($currentLoggedInUser);
 
 		$publicTask = factory(Task::class)->create(['privacy' => 0, 'user_id' => $userWhoOwnsTheTask->id]);
 
-		$response = $this->json('GET', "api/watch/{$publicTask->id}", [], $headers);
+		$response = $this->get(route('watch.task', ['task' => $publicTask->id]));
 
 		$watcher = Watch::where(['user_id' => $currentLoggedInUser->id, 'task_id' => $publicTask->id])->first();
 
@@ -79,7 +37,7 @@ class WatchTest extends TestCase
 		$privateTask = factory(Task::class)->create(['privacy' => 1, 'user_id' => $userWhoOwnsTheTask->id]);
 
 
-		$response = $this->json('GET', "api/watch/{$privateTask->id}", [], $headers);
+		$response = $this->get(route('watch.task', ['task' => $privateTask->id]));
 
 		$watcher = Watch::where(['user_id' => $currentLoggedInUser->id, 'task_id' => $privateTask->id])->first();
 
@@ -93,9 +51,8 @@ class WatchTest extends TestCase
 
 	public function test_user_can_watch_private_task_he_got_invited_to()
 	{
-		$invitedUser = $this->createNewUserWithClientRecord();
+		$invitedUser = $this->createAndAuthenticateUser();
 
-		$headers = $this->headers($invitedUser);
 
 		$userWhoOwnsTheTask = factory(User::class)->create();
 
@@ -110,7 +67,7 @@ class WatchTest extends TestCase
 		]);
 
 
-		$response = $this->json('GET', "api/watch/{$privateTask->id}", [], $headers);
+		$response = $this->get(route('watch.task', ['task' => $privateTask->id]));
 
 		$watcher = Watch::where(['user_id' => $invitedUser->id, 'task_id' => $privateTask->id])->first();
 

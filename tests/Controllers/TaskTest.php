@@ -16,42 +16,6 @@ class TaskTest extends TestCase
 {
 	use DatabaseTransactions;
 
-	/**
-	 * Creates new user with client id to authenticate through passport
-	 * @return mixed
-	 */
-	public function createNewUserWithClientRecord()
-	{
-		$user = factory(User::class)->create();
-
-		Auth::login($user);
-
-		$response = $this->json('POST' , '/oauth/clients', [
-			'name' => 'MyClient',
-			'redirect' => 'http://localhost'
-		]);
-
-		return $user;
-
-	}
-
-	/**
-	 * Creates headers for passport token
-	 * @param null $user
-	 *
-	 * @return array
-	 */
-	protected function headers($user = null)
-	{
-		$headers = ['Accept' => 'application/json'];
-
-		if (!is_null($user)) {
-			$token = $user->createToken('Token Name')->accessToken;
-			$headers['Authorization'] = 'Bearer ' . $token;
-		}
-
-		return $headers;
-	}
 
 
 
@@ -62,25 +26,25 @@ class TaskTest extends TestCase
 			'status' => true,
 		])->toArray();
 
-		$user = $this->createNewUserWithClientRecord();
+		$user = $this->createAndAuthenticateUser();
 
-		$headers = $this->headers($user);
 
-		$response = $this->json('POST', 'api/tasks', $attributes, $headers);
+		$response = $this->post( route('tasks.store'), $attributes);
 
-		$response
-			->assertJson(['success' => 'Task has been created!', 'id' => Task::first()->id]);
+		$response->assertJson(['success' => 'Task has been created!', 'id' => Task::first()->id]);
 	}
+
+
 
 	public function test_that_it_shows_single_task()
 	{
+
+		$user = $this->createAndAuthenticateUser();
+
+
 		$task = factory(Task::class)->create();
 
-		$user = $this->createNewUserWithClientRecord();
-
-		$headers = $this->headers($user);
-
-		$response = $this->json('GET', 'api/tasks/'.$task->id, [], $headers);
+		$response = $this->get(route('tasks.show', ['task' => $task->id]));
 
 		$response
 			->assertJson([
@@ -98,11 +62,10 @@ class TaskTest extends TestCase
 	{
 		$task = factory(Task::class)->create()->toArray();
 
-		$user = $this->createNewUserWithClientRecord();
+		$user = $this->createAndAuthenticateUser();
 
-		$headers = $this->headers($user);
 
-		$response = $this->json('PUT', 'api/tasks/'.$task['id'], $task, $headers);
+		$response = $this->put(route('tasks.update', ['task' => $task['id']]), $task);
 
 		$task = Task::find($task['id']);
 
@@ -118,11 +81,10 @@ class TaskTest extends TestCase
 	{
 		$task = factory(Task::class)->create();
 
-		$user = $this->createNewUserWithClientRecord();
+		$user = $this->createAndAuthenticateUser();
 
-		$headers = $this->headers($user);
 
-		$response = $this->json('DELETE', 'api/tasks/'.$task->id, [], $headers);
+		$response = $this->delete(route('tasks.destroy', ['task' => $task->id]));
 
 
 		$response->assertJson(['success' => 'The Task has been deleted!']);
@@ -131,19 +93,18 @@ class TaskTest extends TestCase
 
 	public function test_guests_can_see_public_tasks()
 	{
-		$user = $this->createNewUserWithClientRecord();
 
-		$task = factory(Task::class)->create(['user_id' => $user->id]);
+		$task = factory(Task::class)->create();
+
+		$userId = $task->user_id;
 
 		$task = Fractal::create()
 		               ->item($task)
 		               ->transformWith(TaskTransformer::class)->toJson();
 
 
-		Auth::logout();
 
-
-		$response = $this->json('GET', $user->id.'/tasks/');
+		$response = $this->get(route('users.tasks.view', ['user' => $userId]));
 
 		$this->assertJson($task, $response->json());
 	}

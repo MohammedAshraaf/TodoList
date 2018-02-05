@@ -29,8 +29,18 @@ $factory->define(App\Task::class, function (Faker $faker) {
     	'name' => $faker->word,
         'description' => $faker->word,
         'deadline' => '2018-05-15 00:00:00',
-	    'status' => false
+	    'status' => false,
+	    'privacy' => 0,
+	    'user_id' => function (){
+    	return factory(\App\User::class)->create()->id;
+	    }
     ];
+});
+
+$factory->state(\App\Task::class, 'private', function (Faker $faker){
+	return [
+		'privacy' => 1
+	];
 });
 
 
