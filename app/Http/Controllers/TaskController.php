@@ -7,6 +7,7 @@ use App\Task;
 use App\Transformers\TaskTransformer;
 use App\User;
 use App\Watch;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use League\Fractal\Pagination\IlluminatePaginatorAdapter;
@@ -17,11 +18,14 @@ class TaskController extends Controller
 
 	/**
 	 * indexing the tasks
+	 *
+	 * @param Request $request
+	 *
 	 * @return mixed
 	 */
-	public function index()
+	public function index(Request $request)
 	{
-		$limit = Input::get('limit', 2);
+		$limit = $request->filled('limit') ? $request->limit : 10;
 
 		// user can't request more that 500 records
 		$limit = min($limit, 500);
@@ -133,7 +137,7 @@ class TaskController extends Controller
     {
     	if(!Auth::user()->tasks->contains($task))
 	    {
-	    	return response()->json(['error' => 'unauthorized to perform this action'], 401);
+	    	return response()->json(['error' => 'unauthorized to perform this action'], 403);
 	    }
 	    $task->delete();
 
@@ -143,18 +147,21 @@ class TaskController extends Controller
 
 	/**
 	 * Allow Guests to view users' tasks
+	 *
 	 * @param User $user
+	 *
+	 * @param Request $request
 	 *
 	 * @return mixed
 	 */
-    public function viewOthersTasks(User $user)
+    public function viewOthersTasks(User $user, Request $request)
     {
-	    $limit = Input::get('limit', 2);
+	    $limit = $request->filled('limit') ? $request->limit : 10;
 
 	    // user can't request more that 500 records
 	    $limit = min($limit, 500);
 
-	    $tasks = $user->tasks()->where('privacy', 0)->paginate(2);
+	    $tasks = $user->tasks()->where('privacy', 0)->paginate($limit);
 
 	    $taskCollection = $tasks->getCollection();
 
@@ -166,23 +173,4 @@ class TaskController extends Controller
 		    ->toArray();
     }
 
-
-	/**
-	 * shows single task to the guests
-	 * @param User $user
-	 * @param Task $task
-	 *
-	 * @return \Illuminate\Contracts\Routing\ResponseFactory|\Illuminate\Http\JsonResponse|\Symfony\Component\HttpFoundation\Response
-	 */
-    public function viewOthersTask(User $user, Task $task)
-    {
-    	// return the task unless it's a private one!
-	    return $user->tasks->contains($task) && !$task->privacy ?
-		    response()
-			    ->json(Fractal::create()
-			                  ->item($task)
-			                  ->transformWith(TaskTransformer::class), 200) :
-		    response(['error' => 'unauthorized to perform this action'], 403);
-
-    }
 }
