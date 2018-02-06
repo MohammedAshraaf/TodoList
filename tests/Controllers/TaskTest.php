@@ -42,7 +42,7 @@ class TaskTest extends TestCase
 		$user = $this->createAndAuthenticateUser();
 
 
-		$task = factory(Task::class)->create();
+		$task = factory(Task::class)->create(['user_id' => $user->id]);
 
 		$response = $this->get(route('tasks.show', ['task' => $task->id]));
 
@@ -79,10 +79,10 @@ class TaskTest extends TestCase
 
 	public function test_it_deletes_task()
 	{
-		$task = factory(Task::class)->create();
 
 		$user = $this->createAndAuthenticateUser();
 
+		$task = factory(Task::class)->create(['user_id' => $user->id]);
 
 		$response = $this->delete(route('tasks.destroy', ['task' => $task->id]));
 
