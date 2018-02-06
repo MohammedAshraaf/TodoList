@@ -72,6 +72,10 @@ class TaskController extends Controller
 	 */
     public function show(Task $task)
     {
+	    if(!Auth::user()->tasks->contains($task))
+	    {
+		    return response()->json(['error' => 'unauthorized to perform this action'], 401);
+	    }
 
     	return response()->json(Fractal::create()
 	                                   ->item($task)
@@ -122,6 +126,10 @@ class TaskController extends Controller
 	 */
     public function destroy(Task $task)
     {
+    	if(!Auth::user()->tasks->contains($task))
+	    {
+	    	return response()->json(['error' => 'unauthorized to perform this action'], 401);
+	    }
 	    $task->delete();
 
     	return response()->json(['success' => 'The Task has been deleted!'], 200);
