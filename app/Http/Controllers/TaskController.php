@@ -6,6 +6,7 @@ use App\Http\Requests\TaskRequest;
 use App\Task;
 use App\Transformers\TaskTransformer;
 use App\User;
+use App\Watch;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use League\Fractal\Pagination\IlluminatePaginatorAdapter;
@@ -53,13 +54,16 @@ class TaskController extends Controller
     	$task = Auth::user()->tasks()->create($request->only([
     		'name',
 		    'description',
-		    'user_id',
 		    'privacy',
 		    'status',
 		    'deadline',
 	    ]));
 
-    	return response()->json(['success' => 'Task has been created!', 'id' => $task->id],200);
+	    $task = Fractal::create()
+	                   ->item(Task::first())
+	                   ->transformWith(TaskTransformer::class)->toArray();
+
+    	return response()->json(['success' => 'Task has been created!', $task],200);
     }
 
 
@@ -72,7 +76,8 @@ class TaskController extends Controller
 	 */
     public function show(Task $task)
     {
-	    if(!Auth::user()->tasks->contains($task))
+	    if(!Auth::user()->tasks->contains($task) && $task->privacy
+	       && is_null(Watch::where(['user_id' => Auth::id(), 'task_id' => $task->id])->first()))
 	    {
 		    return response()->json(['error' => 'unauthorized to perform this action'], 401);
 	    }
@@ -94,15 +99,15 @@ class TaskController extends Controller
     public function update(Task $task, TaskRequest $request)
     {
 
-    	if (Auth::user()->tasks->contains($task))
+    	if (!Auth::user()->tasks->contains($task))
 	    {
 	    	return response(['error' => 'unauthorized to perform this action'], 403);
 	    }
 
 
 		$task->update($request->only([
+			'name',
 			'description',
-			'user_id',
 			'privacy',
 			'status',
 			'deadline',
