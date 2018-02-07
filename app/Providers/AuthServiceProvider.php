@@ -27,6 +27,10 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies();
 	    Passport::routes();
 
+	    Gate::define('show-task', 'TaskPolicy@view');
+	    Gate::define('update-task', 'TaskPolicy@update');
+	    Gate::define('delete-task', 'TaskPolicy@delete');
+
         //
     }
 }

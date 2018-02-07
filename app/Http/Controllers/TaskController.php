@@ -9,6 +9,7 @@ use App\User;
 use App\Watch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Input;
 use League\Fractal\Pagination\IlluminatePaginatorAdapter;
 use Spatie\Fractalistic\Fractal;
@@ -80,8 +81,7 @@ class TaskController extends Controller
 	 */
     public function show(Task $task)
     {
-	    if(!Auth::user()->tasks->contains($task) && $task->privacy
-	       && is_null(Watch::where(['user_id' => Auth::id(), 'task_id' => $task->id])->first()))
+	    if (Gate::forUser(Auth::user())->denies('show-task', $task))
 	    {
 		    return response()->json(['error' => 'unauthorized to perform this action'], 401);
 	    }
@@ -103,7 +103,7 @@ class TaskController extends Controller
     public function update(Task $task, TaskRequest $request)
     {
 
-    	if (!Auth::user()->tasks->contains($task))
+    	if (Gate::forUser(Auth::user())->denies('update-task', $task))
 	    {
 	    	return response(['error' => 'unauthorized to perform this action'], 403);
 	    }
@@ -135,7 +135,7 @@ class TaskController extends Controller
 	 */
     public function destroy(Task $task)
     {
-    	if(!Auth::user()->tasks->contains($task))
+    	if(Gate::forUser(Auth::user())->denies('delete-task', $task))
 	    {
 	    	return response()->json(['error' => 'unauthorized to perform this action'], 403);
 	    }
