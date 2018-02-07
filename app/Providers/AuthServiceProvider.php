@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Policies\TaskPolicy;
+use App\Task;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Laravel\Passport\Passport;
@@ -15,6 +17,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         'App\Model' => 'App\Policies\ModelPolicy',
+		Task::class => TaskPolicy::class
     ];
 
     /**
@@ -26,6 +29,7 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 	    Passport::routes();
+
 
 	    Gate::define('show-task', 'TaskPolicy@view');
 	    Gate::define('update-task', 'TaskPolicy@update');
