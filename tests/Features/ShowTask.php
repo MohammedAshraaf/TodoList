@@ -19,7 +19,6 @@ class ShowTask extends TestCase
 
 	public function test_that_user_can_show_his_own_task()
 	{
-		$this->withoutExceptionHandling();
 
 		$user = $this->createAndAuthenticateUser();
 

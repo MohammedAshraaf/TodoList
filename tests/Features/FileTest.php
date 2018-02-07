@@ -20,7 +20,6 @@ class FileTest extends TestCase
 	/** @test */
 	function test_uploading_files_to_task()
 	{
-		$this->withoutExceptionHandling();
 
 		$task = factory(Task::class)->create();
 
