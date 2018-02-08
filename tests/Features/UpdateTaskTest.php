@@ -11,7 +11,7 @@ use Spatie\Fractalistic\Fractal;
 use Tests\TestCase;
 
 
-class UpdateTask extends TestCase
+class UpdateTaskTest extends TestCase
 {
 	use DatabaseTransactions;
 

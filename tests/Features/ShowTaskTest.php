@@ -11,7 +11,7 @@ use Spatie\Fractalistic\Fractal;
 use Tests\TestCase;
 
 
-class ShowTask extends TestCase
+class ShowTaskTest extends TestCase
 {
 	use DatabaseTransactions;
 
@@ -44,7 +44,7 @@ class ShowTask extends TestCase
 
 		$response = $this->get(route('tasks.show', ['task' => $someTask->id]));
 
-		$response->assertStatus(401);
+		$response->assertStatus(403);
 
 		$response->json(['error' => 'unauthorized to perform this action']);
 

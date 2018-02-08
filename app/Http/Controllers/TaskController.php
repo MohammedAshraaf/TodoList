@@ -133,10 +133,9 @@ class TaskController extends Controller
 	 */
     public function destroy(Task $task)
     {
-    	if(!$this->authorize('delete', $task))
-	    {
-	    	return response()->json(['error' => 'unauthorized to perform this action'], 403);
-	    }
+    	$this->authorize('delete', $task);
+
+
 	    $task->delete();
 
     	return response()->json(['success' => 'The Task has been deleted!'], 200);

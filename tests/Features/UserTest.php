@@ -257,11 +257,9 @@ class UserTest extends TestCase
 
 		$taskThatINowWatch = $taskIShouldBeWatching;
 
-		$response = $this->get(route('user.feed',  [
-			'filters' => [
-				'username' => $user->username
-			]
-		]));
+		$response = $this->get(route('user.feed').'?username='.$user->username);
+
+
 
 		$this->assertCount(1, $response->json()['data']);
 
@@ -284,9 +282,7 @@ class UserTest extends TestCase
 		$taskThatINowWatch = $taskIShouldBeWatching;
 
 		$response = $this->get(route('user.feed', [
-			'filters' => [
 				'status' => 1
-			]
 		]));
 
 		$this->assertCount(1, $response->json()['data']);
@@ -310,9 +306,9 @@ class UserTest extends TestCase
 		$taskThatINowWatch = $taskIShouldBeWatching;
 
 		$response = $this->get(route('user.feed', [
-			'filters' => [
+
 				'deadline' => '2018-10-1'
-			]
+
 		]));
 
 		$this->assertCount(1, $response->json()['data']);

@@ -12,7 +12,7 @@ use Spatie\Fractalistic\Fractal;
 use Tests\TestCase;
 
 
-class ListTasks extends TestCase
+class ListTasksTest extends TestCase
 {
 	use DatabaseTransactions;
 

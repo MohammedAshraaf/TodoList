@@ -11,7 +11,7 @@ use Spatie\Fractalistic\Fractal;
 use Tests\TestCase;
 
 
-class DeleteTask extends TestCase
+class DeleteTaskTest extends TestCase
 {
 	use DatabaseTransactions;
 
