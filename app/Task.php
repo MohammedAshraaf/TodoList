@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\HelperClasses\QueryFilter;
 use Illuminate\Database\Eloquent\Model;
 
 class Task extends Model
@@ -31,4 +32,10 @@ class Task extends Model
     {
     	return $this->belongsToMany(User::class, 'watches', 'task_id', 'user_id');
     }
+
+
+	public function scopeFilter($query, QueryFilter $filter)
+	{
+		$filter->apply($query);
+	}
 }

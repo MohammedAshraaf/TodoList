@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\HelperClasses\QueryFilter;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Auth;
@@ -30,20 +31,26 @@ class User extends Authenticatable
     ];
 
 
-
-
+	/**
+	 * User Has Many Tasks
+	 * @return \Illuminate\Database\Eloquent\Relations\HasMany
+	 */
     public function tasks()
     {
     	return $this->hasMany(Task::class);
     }
 
 
+	/**
+	 *  User Watches Tasks
+	 * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+	 */
 	public function tasksHeWatches()
 	{
 		return $this->belongsToMany('App\Task', 'watches', 'user_id', 'task_id');
 	}
 
-
+	
 	public function filterTasks($filters, $limit = 15)
 	{
 

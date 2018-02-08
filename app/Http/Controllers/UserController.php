@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\HelperClasses\FilesRemover;
+use App\HelperClasses\TaskFilters;
 use App\Http\Requests\UserProfileRequest;
 use App\Invitation;
 use App\Task;
@@ -107,14 +108,15 @@ class UserController extends Controller
 	 *
 	 * @return mixed
 	 */
-	public function newsFeed(Request $request)
+	public function newsFeed(TaskFilters $filters)
 	{
 
 		$limits = $request->limit ?? 15;
 
-		$filters = $request->filled('filters') ? $request->filters : [];
+		$user = Auth::user();
 
-		$totalTasks = (new User())->filterTasks($filters, ($limits + 1)/ 2 );
+
+		$totalTasks = Task::filter($filters)->get();
 
 		return fractal()
 			->collection($totalTasks)
